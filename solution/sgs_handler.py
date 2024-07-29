@@ -50,8 +50,3 @@ class SGSHandler():
                 if attempts >= max_attempts:
                     self.logger.error(f" [-] Failed to set dataframe after {max_attempts} attempts.")
                     break
-
-
-s = SGSHandler(11)
-s.try_set_dataframe()
-print(s.get_dataframe())
