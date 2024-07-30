@@ -1,0 +1,13 @@
+{
+  "sgs_handler": {
+    "serie_name": "SELIC",
+    "start_date": "2010-1-1",
+    "end_date": "2021-3-1",
+    "freq": "D",
+    "last_n": 0
+  },
+  "calculator_handler": {
+    "window": 500,
+    "capital": 657.43
+  }
+}
