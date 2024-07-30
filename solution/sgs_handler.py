@@ -28,7 +28,7 @@ class SGSHandler():
 
     def set_sgs_code(self, series_name: str)->None:
         self.logger.info(f"[+] Executing {self.__class__.__name__}.set_sgs_code with parameters: series_name={series_name}")
-        self.series_name = self.sgs_code_mapping[series_name]
+        self.sgs_code = self.sgs_code_mapping[series_name]
         self.logger.info(f"[+] Executed {self.__class__.__name__}.set_sgs_code with new value: sgs_code={self.sgs_code}")
 
     def set_start_date(self, start_date: date)->None:
@@ -63,7 +63,7 @@ class SGSHandler():
         self.logger.info(f"[+] Executing {self.__class__.__name__}.set_dataframe with parameters: "
                           f"sgs_code={self.sgs_code}, start_date={self.start_date}, end_date={self.end_date}, "
                           f"last_n={self.last_n}, freq={self.freq}")
-        self.dataframe = sgs.get(self.sgs_code, self.start_date, self.end_date, self.last_n, self.freq)
+        self.dataframe = sgs.get(self.sgs_code, self.start_date, self.end_date, self.last_n, self.freq).rename(columns={str(self.sgs_code): 'valor'})
         self.logger.info(f"[+] Executed {self.__class__.__name__}.set_dataframe and returned dataframe with shape {self.dataframe.shape}")
 
     def get_dataframe(self) -> pd.DataFrame:
