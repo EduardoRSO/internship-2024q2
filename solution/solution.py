@@ -1,7 +1,6 @@
 import os
 import requests
 import glob
-
 import pandas as pd
 
 from datetime import datetime, timedelta, date
@@ -82,14 +81,7 @@ class SelicCalc:
         )
 
 
-    def calc_amount(
-        self,
-        start_date: date,
-        end_date: date,
-        capital: float,
-        frequency: str,
-        save_csv: bool,
-    ) -> pd.DataFrame:
+    def calc_amount(self,start_date: date, end_date: date, capital: float, frequency: str, save_csv: bool) -> pd.DataFrame:
         self.capital = capital
         start_date, end_date = self.is_valid_input(start_date, end_date, frequency)
         base_url = "https://api.bcb.gov.br/dados/serie/bcdata.sgs.11/dados?formato=json&"
