@@ -1,20 +1,15 @@
 import logging
 import pandas as pd
 from bcb import sgs
-from datetime import date
+from datetime import datetime
 
 class SGSHandler():
 
-    def __init__(self, sgs_code:int = None, start_date: date = None, end_date: date = None, last_n: int = 0, freq: str = None) -> None:
+    def __init__(self, environment_variables:dict) -> None:
         self.set_logger()
-        self.sgs_code_mapping = {
-            'SELIC': 11
-        }
-        self.sgs_code = sgs_code
-        self.start_date = start_date
-        self.end_date = end_date
-        self.last_n = last_n
-        self.freq = freq
+        self.set_sgs_code_map()
+        self.set_parameters_setter_map()
+        self.set_attributes(environment_variables)
         self.dataframe = None
         self.logger.info(f" [+] Instantiated SGSHandler : {self.__str__()}")
 
@@ -24,32 +19,52 @@ class SGSHandler():
                   f"last_n={self.last_n}, freq={self.freq}, dataframe_shape={self.dataframe.shape if self.dataframe is not None else None}, sgs_code_mapping = {self.sgs_code_mapping})")
         self.logger.info(f"[+] Executed {self.__class__.__name__}.__str__ and returned string representation")
         return result
+    
+    def set_sgs_code_map(self):
+        self.sgs_code_mapping = {
+            'SELIC': 11
+        }
 
+    def set_parameters_setter_map(self):
+        self.parameters_setter_map = {
+            'serie_name' : self.set_sgs_code,
+            'start_date' : self.set_start_date,
+            'end_date' : self.set_end_date,
+            'freq' : self.set_freq,
+            'last_n': self.set_last_n
+        }
 
     def set_sgs_code(self, series_name: str)->None:
         self.logger.info(f"[+] Executing {self.__class__.__name__}.set_sgs_code with parameters: series_name={series_name}")
         self.sgs_code = self.sgs_code_mapping[series_name]
         self.logger.info(f"[+] Executed {self.__class__.__name__}.set_sgs_code with new value: sgs_code={self.sgs_code}")
 
-    def set_start_date(self, start_date: date)->None:
+    def set_start_date(self, start_date: str)->None:
         self.logger.info(f"[+] Executing {self.__class__.__name__}.set_start_date with parameters: start_date={start_date}")
-        self.start_date = start_date
+        self.start_date = datetime.strptime(start_date, '%Y-%m-%d')
         self.logger.info(f"[+] Executed {self.__class__.__name__}.set_start_date with new value: start_date={self.start_date}")
 
-    def set_end_date(self, end_date: date)->None:
+    def set_end_date(self, end_date: str)->None:
         self.logger.info(f"[+] Executing {self.__class__.__name__}.set_end_date with parameters: end_date={end_date}")
-        self.end_date = end_date
+        self.end_date = datetime.strptime(end_date, '%Y-%m-%d')
         self.logger.info(f"[+] Executed {self.__class__.__name__}.set_end_date with new value: end_date={self.end_date}")
 
-    def set_last_n(self, last_n: int)->None:
+    def set_last_n(self, last_n: str)->None:
         self.logger.info(f"[+] Executing {self.__class__.__name__}.set_last_n with parameters: last_n={last_n}")
-        self.last_n = last_n
+        self.last_n = int(last_n)
         self.logger.info(f"[+] Executed {self.__class__.__name__}.set_last_n with new value: last_n={self.last_n}")
 
     def set_freq(self, freq: str)->None:
         self.logger.info(f"[+] Executing {self.__class__.__name__}.set_freq with parameters: freq={freq}")
         self.freq = freq
         self.logger.info(f"[+] Executed {self.__class__.__name__}.set_freq with new value: freq={self.freq}")
+
+    def set_attributes(self, enviroment_variables:dict):
+        for attribute_name, attribute_value in enviroment_variables.items():
+            if self.parameters_setter_map.get(attribute_name) != None:
+                self.parameters_setter_map[attribute_name](attribute_value)
+            else:
+                self.logger.info(f"[-] Error at {self.__class__.__name__}.set_attributes: Invalid attribute name: {attribute_name}")
 
     def set_logger(self)->None:
         self.logger = logging.getLogger(self.__class__.__name__)
