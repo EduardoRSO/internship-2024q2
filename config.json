@@ -1,5 +1,5 @@
 {
-  "sgs_handler": {
+  "interest_rate_handler": {
     "serie_name": "SELIC",
     "start_date": "2010-1-1",
     "end_date": "2021-3-1",
