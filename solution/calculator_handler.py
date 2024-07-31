@@ -91,18 +91,10 @@ class CalculatorHandler():
         self.dataframe["Amount earned"] = self.dataframe["compound"] - self.capital
         self.logger.info(f"[+] Executed {self.__class__.__name__}.calculate_amount_earned DataFrame shape: {self.dataframe.shape}")
 
-    def display_message(self):
-        self.logger.info(f"[+] Executing {self.__class__.__name__}.display_message")
-        self.logger.info(f"Row with max value of 'return': \n{self.dataframe.loc[self.dataframe['Amount earned'].idxmax()]}")
-        self.logger.info(f"Row with max value of 'return': \n{self.dataframe[self.dataframe.index == datetime(2016,10,28)]}")
-        self.logger.info(f"[+] Executed {self.__class__.__name__}.display_message")
-
-
     def calculate(self):
         self.logger.info(f"[+] Executing {self.__class__.__name__}.calculate")
         self.set_dataframe()
         self.calculate_window_accumulated_variation()
         self.calculate_compound()
         self.calculate_amount_earned()
-        self.display_message()
         self.logger.info(f"[+] Executed {self.__class__.__name__}.calculate DataFrame shape: {self.dataframe.shape}")
