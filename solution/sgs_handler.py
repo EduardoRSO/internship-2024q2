@@ -13,6 +13,14 @@ class SGSHandler():
         self.dataframe = None
         self.logger.info(f" [+] Instantiated SGSHandler : {self.__str__()}")
 
+    def set_logger(self)->None:
+        self.logger = logging.getLogger(self.__class__.__name__)
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        handler.setFormatter(formatter)
+        self.logger.addHandler(handler)
+        self.logger.setLevel(logging.INFO)
+
     def __str__(self)->str:
         self.logger.info(f"[+] Executing {self.__class__.__name__}.__str__ with parameters: None")
         result = (f"SGSHandler(sgs_code={self.sgs_code}, start_date={self.start_date}, end_date={self.end_date}, "
@@ -65,14 +73,6 @@ class SGSHandler():
                 self.parameters_setter_map[attribute_name](attribute_value)
             else:
                 self.logger.info(f"[-] Error at {self.__class__.__name__}.set_attributes: Invalid attribute name: {attribute_name}")
-
-    def set_logger(self)->None:
-        self.logger = logging.getLogger(self.__class__.__name__)
-        handler = logging.StreamHandler()
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        handler.setFormatter(formatter)
-        self.logger.addHandler(handler)
-        self.logger.setLevel(logging.INFO)
 
     def set_dataframe(self) ->None:
         self.logger.info(f"[+] Executing {self.__class__.__name__}.set_dataframe with parameters: "
