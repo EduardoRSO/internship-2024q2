@@ -1,39 +1,42 @@
 import numpy as np
 import pandas as pd
 from datetime import date
-from sgs_handler import SGSHandler
+from solution.sgs_handler import SGSHandler
 
 class CalculatorHandler():
-    def __init__(self, capital:float = 657.43, window:int = 20) -> None:
-        self.available_handlers = {
-            'SELIC': SGSHandler
-        }
-        self.parameters_setter_map = {}
+    def __init__(self, environment_variables:dict) -> None:
+        self.set_parameters_setter_map()
+        self.set_attributes(environment_variables['calculator_handler'])
+        self.set_interest_rate_handlers_map()
+        self.set_interest_rate_handler(environment_variables['interest_rate_handler'])
         self.dataframe = None
-        self.window = window
-        self.capital = capital
 
     def set_capital(self, value:float):
         self.capital = value
 
-    def set_range(self, value:int):
+    def set_window(self, value:int):
         self.window = value
 
     def set_parameters_setter_map(self):
         self.parameters_setter_map = {
-            'serie_name' : self.interest_rate_handler.set_sgs_code,
-            'start_date' : self.interest_rate_handler.set_start_date,
-            'end_date' : self.interest_rate_handler.set_end_date,
-            'freq' : self.interest_rate_handler.set_freq,
-            'last_n': self.interest_rate_handler.set_last_n
+            'window' : self.set_window,
+            'capital' : self.set_capital,
         }
 
-    def set_interest_rate_handler(self, parameters: dict):
-        self.serie_name = parameters['serie_name']
-        self.interest_rate_handler = self.available_handlers[self.serie_name](self.serie_name)
-        self.set_parameters_setter_map()
-        for parameter_name, parameter_value in parameters.items():
-            self.parameters_setter_map[parameter_name](parameter_value)
+    def set_attributes(self, enviroment_variables:dict):
+        for attribute_name, attribute_value in enviroment_variables.items():
+            if self.parameters_setter_map.get(attribute_name) != None:
+                self.parameters_setter_map[attribute_name](attribute_value)
+            else:
+                '''logger message [-] Error at <class name>.<function name>: Invalid attribute name: {attribute_name} '''
+
+    def set_interest_rate_handlers_map(self):
+        self.available_handlers = {
+            'SELIC': SGSHandler
+        }
+
+    def set_interest_rate_handler(self, enviroment_variables:dict):
+        self.interest_rate_handler = self.available_handlers[enviroment_variables['serie_name']](enviroment_variables)
 
     def set_dataframe(self):
         self.interest_rate_handler.try_set_dataframe()
