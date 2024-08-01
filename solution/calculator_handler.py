@@ -59,6 +59,7 @@ class CalculatorHandler():
 
     def set_interest_rate_handler(self, environment_variables: dict):
         self.logger.info(f"[+] Executing {self.__class__.__name__}.set_interest_rate_handler with parameters: environment_variables={environment_variables}")
+        assert self.interest_rate_handlers_map.get(environment_variables['serie_name']) != None, f"serie_name={environment_variables['serie_name']} not defined in self.interest_rate_handlers_map={self.interest_rate_handlers_map}"
         self.interest_rate_handler = self.interest_rate_handlers_map[environment_variables['serie_name']](environment_variables)
         self.logger.info(f"[+] Executed {self.__class__.__name__}.set_interest_rate_handler")
 
@@ -66,6 +67,11 @@ class CalculatorHandler():
         self.logger.info(f"[+] Executing {self.__class__.__name__}.set_dataframe")
         self.interest_rate_handler.try_set_dataframe()
         self.dataframe = self.interest_rate_handler.get_dataframe().copy()
+        assert not self.dataframe.empty, "DataFrame is empty"
+        assert len(self.dataframe) > self.window, f"DataFrame row count {len(self.dataframe)} is not greater than window {self.window}"
+        assert isinstance(self.dataframe.index, pd.DatetimeIndex), "DataFrame index is not of type DatetimeIndex"
+        assert self.dataframe['valor'].dtype == float, "DataFrame 'valor' column is not of type float"
+        assert not self.dataframe.isna().any().any(), "DataFrame contains NaN values"
         self.logger.info(f"[+] Executed {self.__class__.__name__}.set_dataframe DataFrame shape: {self.dataframe.shape}")
 
     def _aux_calculate(self, window):
@@ -78,17 +84,26 @@ class CalculatorHandler():
     def calculate_window_accumulated_variation(self):
         self.logger.info(f"[+] Executing {self.__class__.__name__}.calculate_window_accumulated_variation")
         self.dataframe['return'] = self.dataframe['valor'].rolling(window=self.window).apply(lambda x: self._aux_calculate(x), raw=True)
+        assert 'return' in self.dataframe.columns, "Column 'return' was not created"
+        assert not self.dataframe['return'].isna().any(), "Column 'return' contains NaN values"
+        assert self.dataframe['return'].dtype == float, "Column 'return' is not of type float"        
         self.logger.info(f"[+] Executed {self.__class__.__name__}.calculate_window_accumulated_variation DataFrame shape: {self.dataframe.shape}")
         
     def calculate_compound(self):
         self.logger.info(f"[+] Executing {self.__class__.__name__}.calculate_compound")
         self.dataframe['compound'] = self.capital
         self.dataframe['compound'] = (self.dataframe['compound']) * self.dataframe["valor"].shift().add(1).cumprod().fillna(1)
+        assert 'compound' in self.dataframe.columns, "Column 'compound' was not created"
+        assert not self.dataframe['compound'].isna().any(), "Column 'compound' contains NaN values"
+        assert self.dataframe['compound'].dtype == float, "Column 'compound' is not of type float"
         self.logger.info(f"[+] Executed {self.__class__.__name__}.calculate_compound DataFrame shape: {self.dataframe.shape}")
         
     def calculate_amount_earned(self):
         self.logger.info(f"[+] Executing {self.__class__.__name__}.calculate_amount_earned")
         self.dataframe["Amount earned"] = self.dataframe["compound"] - self.capital
+        assert "Amount earned" in self.dataframe.columns, "Column 'Amount earned' was not created"
+        assert not self.dataframe["Amount earned"].isna().any(), "Column 'Amount earned' contains NaN values"
+        assert self.dataframe["Amount earned"].dtype == float, "Column 'Amount earned' is not of type float"
         self.logger.info(f"[+] Executed {self.__class__.__name__}.calculate_amount_earned DataFrame shape: {self.dataframe.shape}")
 
     def calculate(self):
