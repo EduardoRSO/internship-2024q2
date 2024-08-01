@@ -44,6 +44,7 @@ class SGSHandler():
 
     def set_sgs_code(self, series_name: str)->None:
         self.logger.info(f"[+] Executing {self.__class__.__name__}.set_sgs_code with parameters: series_name={series_name}")
+        assert self.sgs_code_mapping.get(series_name) !=None, f"Serie name={series_name} not mapped at self.sgs_code_mapping={self.sgs_code_mapping}"
         self.sgs_code = self.sgs_code_mapping[series_name]
         self.logger.info(f"[+] Executed {self.__class__.__name__}.set_sgs_code with new value: sgs_code={self.sgs_code}")
 
@@ -55,16 +56,19 @@ class SGSHandler():
     def set_end_date(self, end_date: str)->None:
         self.logger.info(f"[+] Executing {self.__class__.__name__}.set_end_date with parameters: end_date={end_date}")
         self.end_date = datetime.strptime(end_date, '%Y-%m-%d')
+        assert self.end_date > self.start_date, f"End Date={self.end_date} shoul be greater than start date={self.start_date}"
         self.logger.info(f"[+] Executed {self.__class__.__name__}.set_end_date with new value: end_date={self.end_date}")
 
     def set_last_n(self, last_n: str)->None:
         self.logger.info(f"[+] Executing {self.__class__.__name__}.set_last_n with parameters: last_n={last_n}")
         self.last_n = int(last_n)
+        assert self.last_n >=0, f"Last_N={self.last_n} should be greater or equal to 0"
         self.logger.info(f"[+] Executed {self.__class__.__name__}.set_last_n with new value: last_n={self.last_n}")
 
     def set_freq(self, freq: str)->None:
         self.logger.info(f"[+] Executing {self.__class__.__name__}.set_freq with parameters: freq={freq}")
         self.freq = freq
+        assert self.freq in pd.tseries.frequencies.to_offset(freq).name, f"Frequency {self.freq} is not a valid pandas frequency type"
         self.logger.info(f"[+] Executed {self.__class__.__name__}.set_freq with new value: freq={self.freq}")
 
     def set_attributes(self, enviroment_variables:dict):
