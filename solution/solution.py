@@ -69,7 +69,7 @@ class SelicCalc:
         for i in range(0, length):
             start = df.iloc[i]["data"]
             end = df.iloc[i+499]["data"]
-            value = self.calc_sum_range(start, end, df)
+            value = self.calc_sum(start, end, df)
             if value > best_value:
                 best_start = start
                 best_end = end
@@ -95,7 +95,6 @@ class SelicCalc:
         if df.iloc[0]["data"] < pd.to_datetime(start_date):
             df.drop(index=df.index[0], axis=0, inplace=True)
         df["valor"] = df["valor"] / 100
-
         self.max_val_range(df)
         df_raw = df.copy()
         df["compound"] = capital
@@ -138,3 +137,11 @@ class SelicCalc:
         return df
 
 
+s = SelicCalc()
+s.calc_amount(
+        start_date=date(2010, 1, 1),
+        end_date=date(2021, 3, 1),
+        capital=657.43,
+        frequency="daily",
+        save_csv=False,
+    )
