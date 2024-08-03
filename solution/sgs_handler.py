@@ -83,6 +83,7 @@ class SGSHandler():
                           f"sgs_code={self.sgs_code}, start_date={self.start_date}, end_date={self.end_date}, "
                           f"last_n={self.last_n}, freq={self.freq}")
         self.dataframe = sgs.get(self.sgs_code, self.start_date, self.end_date, self.last_n, self.freq).rename(columns={str(self.sgs_code): 'valor'})
+        self.dataframe['valor'] = self.dataframe['valor']/100
         self.logger.info(f"[+] Executed {self.__class__.__name__}.set_dataframe and returned dataframe with shape {self.dataframe.shape}")
 
     def get_dataframe(self) -> pd.DataFrame:
