@@ -53,7 +53,7 @@ class CalculatorHandler():
     def set_interest_rate_handlers_map(self):
         self.logger.info(f"[+] Executing {self.__class__.__name__}.set_interest_rate_handlers_map")
         self.interest_rate_handlers_map = {
-            'SELIC': SGSHandler
+            'SELIC': SGSHandler,
         }
         self.logger.info(f"[+] Executed {self.__class__.__name__}.set_interest_rate_handlers_map: self.interest_rate_handlers_map={self.interest_rate_handlers_map}")
 
@@ -67,6 +67,8 @@ class CalculatorHandler():
         self.logger.info(f"[+] Executing {self.__class__.__name__}.set_dataframe")
         self.interest_rate_handler.try_set_dataframe()
         self.dataframe = self.interest_rate_handler.get_dataframe().copy()
+        self.dataframe = self.dataframe.sort_index(ascending=False)
+        self.raw_dataframe = self.dataframe.copy()
         assert not self.dataframe.empty, "DataFrame is empty"
         assert len(self.dataframe) > self.window, f"DataFrame row count {len(self.dataframe)} is not greater than window {self.window}"
         assert isinstance(self.dataframe.index, pd.DatetimeIndex), "DataFrame index is not of type DatetimeIndex"
@@ -75,18 +77,19 @@ class CalculatorHandler():
         self.logger.info(f"[+] Executed {self.__class__.__name__}.set_dataframe DataFrame shape: {self.dataframe.shape}")
 
     def _aux_calculate(self, window):
-        self.logger.info(f"[+] Executing {self.__class__.__name__}._aux_calculate with parameters: window len={len(window)}")
-        _df = pd.Series(window, index=self.dataframe.index[-len(window):])
+        #self.logger.info(f"[+] Executing {self.__class__.__name__}._aux_calculate with parameters: window len={len(window)}")
+        _df = pd.Series(window)#, index=self.dataframe.index[-len(window):])
         result = self.capital * _df.shift().add(1).cumprod().fillna(1).iloc[-1]
-        self.logger.info(f"[+] Executed {self.__class__.__name__}._aux_calculate Result: {result}")
+        #self.logger.info(f"[+] Executed {self.__class__.__name__}._aux_calculate Result: {result}")
         return result
 
     def calculate_window_accumulated_variation(self):
         self.logger.info(f"[+] Executing {self.__class__.__name__}.calculate_window_accumulated_variation")
-        self.dataframe['return'] = self.dataframe['valor'].rolling(window=self.window).apply(lambda x: self._aux_calculate(x), raw=True)
-        assert 'return' in self.dataframe.columns, "Column 'return' was not created"
-        assert not self.dataframe['return'].isna().any(), "Column 'return' contains NaN values"
-        assert self.dataframe['return'].dtype == float, "Column 'return' is not of type float"        
+        self.dataframe['acc_var'] = self.dataframe['valor'].rolling(window=self.window).apply(lambda x: self._aux_calculate(x), raw=True)
+        self.dataframe['acc_var'] = self.dataframe['acc_var'].fillna(0)
+        assert 'acc_var' in self.dataframe.columns, "Column 'acc_var' was not created"
+        assert not self.dataframe['acc_var'].isna().any(), "Column 'acc_var' contains NaN values"
+        assert self.dataframe['acc_var'].dtype == float, "Column 'acc_var' is not of type float"        
         self.logger.info(f"[+] Executed {self.__class__.__name__}.calculate_window_accumulated_variation DataFrame shape: {self.dataframe.shape}")
         
     def calculate_compound(self):
@@ -97,9 +100,10 @@ class CalculatorHandler():
         assert not self.dataframe['compound'].isna().any(), "Column 'compound' contains NaN values"
         assert self.dataframe['compound'].dtype == float, "Column 'compound' is not of type float"
         self.logger.info(f"[+] Executed {self.__class__.__name__}.calculate_compound DataFrame shape: {self.dataframe.shape}")
-        
+      
     def calculate_amount_earned(self):
         self.logger.info(f"[+] Executing {self.__class__.__name__}.calculate_amount_earned")
+        self.dataframe["Amount earned"] = None
         self.dataframe["Amount earned"] = self.dataframe["compound"] - self.capital
         assert "Amount earned" in self.dataframe.columns, "Column 'Amount earned' was not created"
         assert not self.dataframe["Amount earned"].isna().any(), "Column 'Amount earned' contains NaN values"
