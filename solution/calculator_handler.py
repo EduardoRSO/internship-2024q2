@@ -1,6 +1,6 @@
 import logging
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 from solution.sgs_handler import SGSHandler
 
 class CalculatorHandler():
@@ -67,7 +67,6 @@ class CalculatorHandler():
         self.logger.info(f"[+] Executing {self.__class__.__name__}.set_dataframe")
         self.interest_rate_handler.try_set_dataframe()
         self.dataframe = self.interest_rate_handler.get_dataframe().copy()
-        self.dataframe = self.dataframe.sort_index(ascending=False)
         self.raw_dataframe = self.dataframe.copy()
         assert not self.dataframe.empty, "DataFrame is empty"
         assert len(self.dataframe) > self.window, f"DataFrame row count {len(self.dataframe)} is not greater than window {self.window}"
@@ -77,15 +76,14 @@ class CalculatorHandler():
         self.logger.info(f"[+] Executed {self.__class__.__name__}.set_dataframe DataFrame shape: {self.dataframe.shape}")
 
     def _aux_calculate(self, window):
-        #self.logger.info(f"[+] Executing {self.__class__.__name__}._aux_calculate with parameters: window len={len(window)}")
-        _df = pd.Series(window)#, index=self.dataframe.index[-len(window):])
+        _df = window[window.index >= (window.index.max() - timedelta(self.window))]
+        assert (_df.index.max() - _df.index.min()) <= timedelta(days=self.window), f"Dataframe window bigger than {self.window}" 
         result = self.capital * _df.shift().add(1).cumprod().fillna(1).iloc[-1]
-        #self.logger.info(f"[+] Executed {self.__class__.__name__}._aux_calculate Result: {result}")
         return result
 
     def calculate_window_accumulated_variation(self):
         self.logger.info(f"[+] Executing {self.__class__.__name__}.calculate_window_accumulated_variation")
-        self.dataframe['acc_var'] = self.dataframe['valor'].rolling(window=self.window).apply(lambda x: self._aux_calculate(x), raw=True)
+        self.dataframe['acc_var'] = self.dataframe.rolling(window=self.window).apply(lambda x: self._aux_calculate(x))
         self.dataframe['acc_var'] = self.dataframe['acc_var'].fillna(0)
         assert 'acc_var' in self.dataframe.columns, "Column 'acc_var' was not created"
         assert not self.dataframe['acc_var'].isna().any(), "Column 'acc_var' contains NaN values"
